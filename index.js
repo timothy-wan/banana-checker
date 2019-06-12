@@ -57,6 +57,8 @@ async function app() {
   
   await setupWebcam();
 
+
+
   const addExample = classId => {
     // Get the intermediate activation of MobileNet 'conv_preds' and pass that
     // to the KNN classifier.
@@ -68,9 +70,9 @@ async function app() {
     classifier.addExample(activation, classId);
   };
 
-  document.getElementById('class-a').addEventListener('click', () => addExample(0));
-  document.getElementById('class-b').addEventListener('click', () => addExample(1));
-  document.getElementById('class-c').addEventListener('click', () => addExample(2));
+  document.getElementById('class-a').addEventListener('click', () => addExample("Apple"));
+  document.getElementById('class-b').addEventListener('click', () => addExample("banana"));
+ 
   document.getElementById('save-data').addEventListener('click', () => saveData());
   document.getElementById('load-data').addEventListener('click', () => loadData());
 
@@ -81,13 +83,15 @@ async function app() {
       // Get the most likely class and confidences from the classifier module.
       const result = await classifier.predictClass(activation);
 
-      const classes = ['A', 'B', 'C'];
+      console.log(result)
+    
       document.getElementById('console').innerText = `
-        prediction: ${classes[result.classIndex]}\n
-        probability: ${result.confidences[result.classIndex]}
+        
+        prediction: ${result.label}\n
+        probability: ${result.confidences[result.label]}\n
+        allClass: ${classifier.getClassExampleCount()}
       `;
 
-      classifier.getClassifierDataset();
     }
 
     // Give some breathing room by waiting for the next animation frame to
