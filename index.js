@@ -1,155 +1,105 @@
-let net;
-const webcamElement = document.getElementById('webcam');
-const classifier = knnClassifier.create();
 
 
-async function setupWebcam() {
-  return new Promise((resolve, reject) => {
-    const navigatorAny = navigator;
-    navigator.getUserMedia = navigator.getUserMedia ||
-        navigatorAny.webkitGetUserMedia || navigatorAny.mozGetUserMedia ||
-        navigatorAny.msGetUserMedia;
-    if (navigator.getUserMedia) {
-      navigator.getUserMedia({video: true},
-        stream => {
-          webcamElement.srcObject = stream;
-          webcamElement.addEventListener('loadeddata',  () => resolve(), false);
-        },
-        error => reject());
-    } else {
-      reject();
-    }
+
+const walletImg = ["./img/IMG_2267.jpg", "./img/IMG_2275.jpg", "./img/IMG_2276.jpg", "./img/IMG_2277.jpg", "./img/IMG_2278.jpg", "./img/IMG_2279.jpg", "./img/IMG_2280.jpg"];
+
+
+// Create a KNN classifier
+const knnClassifier = ml5.KNNClassifier();
+
+// Create a featureExtractor that can extract features of an image
+console.log("model is loading")
+const featureExtractor = ml5.featureExtractor("MobileNet", modelReady);
+
+
+
+// Add an example with a label to the KNN Classifier
+// knnClassifier.addExample(logits, "apple");
+
+// Use KNN Classifier to classify these features
+// knnClassifier.classify(features, function(err, result) {
+//   console.log(result); // result.label is the predicted label
+// });
+
+
+function modelReady() {
+  console.log("model is ready");
+}
+
+// Save dataset as myKNNDataset.json
+function saveMyKNN() {
+  knnClassifier.save('myKNNDataset');
+}
+// Load dataset to the classifier
+function loadMyKNN() {
+  knnClassifier.load('https://crossorigin.me/./myKNNDataset.json', () => {
+    console.log("model loaded")
   });
 }
 
-const saveData = () => {
-  let dataset = classifier.getClassifierDataset();
-  var datasetObj = {};
-  Object.keys(dataset).forEach((key) => {
-    let data = dataset[key].dataSync();
-    console.log(dataset[key].shape)
-    // use Array.from() so when JSON.stringify() it covert to an array string e.g [0.1,-0.2...] 
-    // instead of object e.g {0:"0.1", 1:"-0.2"...}
-    datasetObj[key] = Array.from(data); 
-  });
-  let jsonStr = JSON.stringify(datasetObj);
+function trainBanana() {
+  const img5 = document.getElementById("img5")
+  const logits = featureExtractor.infer( img5);
+  knnClassifier.addExample(logits, "banana");
 
-  // console.log(jsonStr);
-  localStorage.setItem("mlData", jsonStr);
+  const img6 = document.getElementById("img6")
+  const logits1 = featureExtractor.infer( img6);
+  knnClassifier.addExample(logits1, "banana");
+
+  const img7 = document.getElementById("img7")
+  const logits2 = featureExtractor.infer( img7);
+  knnClassifier.addExample(logits2, "banana");
+
+  const img8 = document.getElementById("img8")
+  const logits3 = featureExtractor.infer( img8);
+  knnClassifier.addExample(logits3, "banana");
+  console.log("trained");
+
 }
-
-const loadData = () => {
-  let dataset = localStorage.getItem("mlData")
-  let tensorObj = JSON.parse(dataset)
-  //covert back to tensor
-  Object.keys(tensorObj).forEach((key) => {
-    tensorObj[key] = tf.tensor(tensorObj[key], [tensorObj[key].length / 1024, 1024])
-  })
-  classifier.setClassifierDataset(tensorObj);
-}
-
-async function app() {
-  console.log('Loading mobilenet..');
-
-  // Load the model.
-  net = await mobilenet.load();
-  console.log('Sucessfully loaded model');
+function trainApple () {
   
-  // await setupWebcam();
 
-  const addImage = async (classId) => {
-    const walletPhotoArr = ["./img/IMG_2267.jpg", "./img/IMG_2275.jpg", "./img/IMG_2276.jpg", "./img/IMG_2277.jpg", "./img/IMG_2278.jpg", "./img/IMG_2279.jpg", "./img/IMG_2280.jpg"];
-
-    const bananaPhotoArr = ["https://media.istockphoto.com/photos/banana-picture-id636739634?k=6&m=636739634&s=612x612&w=0&h=BQ9Z6DobjFzclh3LN7nKSljrRqycJPCq65CS8rtUHU4=",
-    "https://images-na.ssl-images-amazon.com/images/I/71gI-IUNUkL._SY355_.jpg",
-  "https://img.purch.com/w/660/aHR0cDovL3d3dy5saXZlc2NpZW5jZS5jb20vaW1hZ2VzL2kvMDAwLzA2NS8xNDkvb3JpZ2luYWwvYmFuYW5hcy5qcGc=",
-"https://cdn1.medicalnewstoday.com/content/images/headlines/271/271157/bananas.jpg",
-"https://thumbs-prod.si-cdn.com/_oO5E4sOE9Ep-qk_kuJ945_-qo4=/800x600/filters:no_upscale()/https://public-media.si-cdn.com/filer/d5/24/d5243019-e0fc-4b3c-8cdb-48e22f38bff2/istock-183380744.jpg",
-"https://www.healthxchange.sg/sites/hexassets/Assets/food-nutrition/good-reasons-to-eat-a-banana-today.jpg"];
-
-    if (classId === "wallet") {
-
-      for (let i = 0; i < walletPhotoArr.length; i++) { 
-        var img = new Image(250, 250); // Use DOM HTMLImageElement
-        img.src =  walletPhotoArr[i];
-        img.alt = 'wallet';
-        console.log(img)
-        const activation = net.infer(img, 'conv_preds');
-        await classifier.addExample(activation, classId);
-      }
-    }
-
-    if (classId === "banana") {
-      
-      for (let i = 0; i < bananaPhotoArr.length; i++) { 
-        var img = new Image(250, 250); // Use DOM HTMLImageElement
-        img.src =  bananaPhotoArr[i];
-        img.alt = 'banana';
-        console.log(img)
-        const activation = net.infer(img, 'conv_preds');
-        await classifier.addExample(activation, classId);
-      }
-    }
+  // for (let i = 0; i < walletImg.length; i++) {
     
-    console.log(classId, "Image feed done!");
-    // document.body.appendChild(img);
-    // const imgPixel = await tf.browser.fromPixels(img);
+    const img4 = document.getElementById("img4")
+    const logits = featureExtractor.infer( img4);
+    knnClassifier.addExample(logits, "apple");
 
-    // console.log(imgPixel)
-    
-  }
+    const img1 = document.getElementById("img1")
+    const logits1 = featureExtractor.infer( img1);
+    knnClassifier.addExample(logits1, "apple");
 
+    const img2 = document.getElementById("img2")
+    const logits2 = featureExtractor.infer( img2);
+    knnClassifier.addExample(logits2, "apple");
 
-  const addExample = classId => {
-    // Get the intermediate activation of MobileNet 'conv_preds' and pass that
-    // to the KNN classifier.
-
-    console.log(webcamElement)
-    const activation = net.infer(webcamElement, 'conv_preds');
-
-    console.log(`${classId} => ${activation}`)
-
-    // Pass the intermediate activation to the classifier.
-    classifier.addExample(activation, classId);
-  };
-
-  // document.getElementById('class-a').addEventListener('click', () => addExample("Apple"));
-  // document.getElementById('class-b').addEventListener('click', () => addExample("banana"));
-
-  document.getElementById('image-add').addEventListener('click', () => addImage("wallet"));
-  document.getElementById('banana-image-add').addEventListener('click', () => addImage("banana"));
-
-
- 
-  document.getElementById('save-data').addEventListener('click', () => saveData());
-  document.getElementById('load-data').addEventListener('click', () => loadData());
-
-  while (true) {
-    if (classifier.getNumClasses() > 0) {
-      // Get the activation from mobilenet from the webcam.
-
-      let img = new Image(250, 250);
-      img.crossOrigin = "anonymous";
-      img.src = "https://cdn.shopify.com/s/files/1/1078/0310/products/fruit-banana-dole-1_1024x1024.jpg?v=1500709708";
-      img.alt = "banana";
-      const activation = net.infer(img, 'conv_preds');
-      // Get the most likely class and confidences from the classifier module.
-      const result = await classifier.predictClass(activation);
-
-      console.log(result)
-    
-      document.getElementById('console').innerText = `
-        
-        prediction: ${result.label}\n
-        probability: ${result.confidences[result.label]}\n
-      `;
-
-    }
-
-    // Give some breathing room by waiting for the next animation frame to
-    // fire.
-    await tf.nextFrame();
-  }
+    const img3 = document.getElementById("img3")
+    const logits3 = featureExtractor.infer( img3);
+    knnClassifier.addExample(logits3, "apple");
+    console.log("trained");
+  // }
+  
+  
 }
 
-app();
+function classify() {
+  const img = document.getElementById("img-test")
+  const logits = featureExtractor.infer( img );
+  knnClassifier.classify(logits, (err, results) => {
+    if (err) {
+      console.error(err);
+    }
+    console.log(results);
+  });
+}
+
+
+document.getElementById("predict").addEventListener("click", classify);
+document.getElementById("apple-image-add").addEventListener("click", trainApple);
+
+document.getElementById("banana-image-add").addEventListener("click", trainBanana);
+document.getElementById("save-data").addEventListener("click", saveMyKNN);
+document.getElementById("load-data").addEventListener("click", loadMyKNN);
+document.getElementById("class-a").addEventListener("click", () => {
+  console.log("apple");
+});
